@@ -6,12 +6,14 @@ import (
 )
 
 type service struct {
-	cbClient coinbase.CoinbaseWsClient
+	cbClient coinbase.CoinbaseClient
+	pairs    []string
 }
 
-func NewService(cbClient coinbase.CoinbaseWsClient) Service {
+func NewService(cbClient coinbase.CoinbaseClient, pairs []string) Service {
 	return &service{
 		cbClient: cbClient,
+		pairs:    pairs,
 	}
 }
 

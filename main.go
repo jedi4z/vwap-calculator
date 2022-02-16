@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/url"
+	"strings"
 	"vwap-calculator/coinbase"
 	"vwap-calculator/vwap"
 )
@@ -18,7 +19,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	vwapService := vwap.NewService(cbClient)
+	pairsArr := strings.Split("BTC-USD,ETH-USD,ETH-BTC", ",")
+	vwapService := vwap.NewService(cbClient, pairsArr)
 
 	err = vwapService.Run(ctx)
 	if err != nil {

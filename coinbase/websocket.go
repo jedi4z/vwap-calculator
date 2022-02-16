@@ -44,6 +44,6 @@ type Response struct {
 	ProductID string    `json:"product_id"`
 }
 
-type CoinbaseWsClient interface {
+type CoinbaseClient interface {
 	Subscribe(ctx context.Context, tradingPairs []string, receiver chan Response) error
 }

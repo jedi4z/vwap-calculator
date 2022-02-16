@@ -14,7 +14,7 @@ type client struct {
 }
 
 // NewClient returns a new websocket client.
-func NewClient(endpoint string) (CoinbaseWsClient, error) {
+func NewClient(endpoint string) (CoinbaseClient, error) {
 	conn, err := ws.Dial(endpoint, "", "http://localhost/")
 	if err != nil {
 		return nil, err
@@ -27,14 +27,14 @@ func NewClient(endpoint string) (CoinbaseWsClient, error) {
 	}, nil
 }
 
-func (c *client) Subscribe(ctx context.Context, tradingPairs []string, receiver chan Response) error {
-	if len(tradingPairs) == 0 {
-		return xerrors.New("tradingPairs must have a least one pair")
+func (c *client) Subscribe(ctx context.Context, pairs []string, receiver chan Response) error {
+	if len(pairs) == 0 {
+		return xerrors.New("pairs array must have a least one pair")
 	}
 
 	subscription := Request{
 		Type:       RequestTypeSubscribe,
-		ProductIDs: tradingPairs,
+		ProductIDs: pairs,
 		Channels: []Channel{
 			{Name: ChannelTypeMatches},
 		},
