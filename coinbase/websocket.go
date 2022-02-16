@@ -1,5 +1,7 @@
 package coinbase
 
+import "context"
+
 // RequestType represents the type of request.
 type RequestType string
 
@@ -43,4 +45,5 @@ type Response struct {
 }
 
 type CoinbaseWsClient interface {
+	Subscribe(ctx context.Context, tradingPairs []string, receiver chan Response) error
 }
