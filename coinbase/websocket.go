@@ -2,6 +2,8 @@ package coinbase
 
 import "context"
 
+const DefaultURL = "wss://ws-feed.exchange.coinbase.com"
+
 // RequestType represents the type of request.
 type RequestType string
 

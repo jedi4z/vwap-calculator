@@ -1,5 +1,5 @@
 test:
-	@go test -race ./...
+	@go test ./...
 
 upgrade:
 	@echo "Upgrading dependencies..."

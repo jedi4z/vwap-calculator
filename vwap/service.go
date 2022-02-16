@@ -29,7 +29,8 @@ func (s *service) Run(ctx context.Context) error {
 	}
 
 	for data := range receiver {
-		log.Printf("data: %v", data)
+		log.Printf("data: %s", data.ProductID)
+		log.Printf("data: %s", data.Price)
 	}
 
 	return nil
