@@ -20,6 +20,10 @@ func NewService(cbClient coinbase.CoinbaseClient, pairs []string) Service {
 	}
 }
 
+func (s *service) Calculate(d DataPoint) {
+
+}
+
 func (s *service) Run(ctx context.Context) error {
 	receiver := make(chan coinbase.Response)
 
