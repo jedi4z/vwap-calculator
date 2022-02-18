@@ -20,10 +20,6 @@ func NewService(cbClient coinbase.CoinbaseClient, pairs []string) Service {
 	}
 }
 
-func (s *service) Calculate(d DataPoint) {
-
-}
-
 func (s *service) Run(ctx context.Context) error {
 	receiver := make(chan coinbase.Response)
 
@@ -33,8 +29,13 @@ func (s *service) Run(ctx context.Context) error {
 	}
 
 	for data := range receiver {
+		if data.ProductID == "" || data.Price == "" {
+			continue
+		}
+
 		log.Printf("data: %s", data.ProductID)
 		log.Printf("data: %s", data.Price)
+
 	}
 
 	return nil
