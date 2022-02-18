@@ -28,6 +28,24 @@ func NewService(cbClient coinbase.CoinbaseClient, pairs []string) (Service, erro
 	}, nil
 }
 
+func generateDataPointFromCoinbaseResponse(d coinbase.Response) (dataPoint, error) {
+	priceFloat, err := strconv.ParseFloat(d.Price, 64)
+	if err != nil {
+		return dataPoint{}, xerrors.Errorf("error converting str price to float %s: %w", d.Price, err)
+	}
+
+	volumeFloat, err := strconv.ParseFloat(d.Size, 64)
+	if err != nil {
+		return dataPoint{}, xerrors.Errorf("error converting str volume to float %s: %w", d.Price, err)
+	}
+
+	return dataPoint{
+		Pair:   d.ProductID,
+		Price:  priceFloat,
+		Volume: volumeFloat,
+	}, nil
+}
+
 func (s *service) Run(ctx context.Context) error {
 	receiver := make(chan coinbase.Response)
 
@@ -41,21 +59,12 @@ func (s *service) Run(ctx context.Context) error {
 			continue
 		}
 
-		priceFloat, err := strconv.ParseFloat(data.Price, 64)
+		datapoint, err := generateDataPointFromCoinbaseResponse(data)
 		if err != nil {
-			return xerrors.Errorf("error converting str price to float %s: %w", data.Price, err)
+			return xerrors.Errorf("error generating a data point from coinbase response: %w", err)
 		}
 
-		volumeFloat, err := strconv.ParseFloat(data.Size, 64)
-		if err != nil {
-			return xerrors.Errorf("error converting str volume to float %s: %w", data.Price, err)
-		}
-
-		s.vwapPeriod.Calculate(dataPoint{
-			Pair:   data.ProductID,
-			Price:  priceFloat,
-			Volume: volumeFloat,
-		})
+		s.vwapPeriod.Calculate(datapoint)
 
 		fmt.Println(s.vwapPeriod.GetVWAP())
 	}
