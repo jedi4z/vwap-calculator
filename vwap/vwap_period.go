@@ -1,7 +1,7 @@
 package vwap
 
 import (
-	"fmt"
+	"sync"
 
 	"golang.org/x/xerrors"
 )
@@ -17,6 +17,7 @@ type dataPoint struct {
 }
 
 type vwapPeriod struct {
+	mu         sync.Mutex
 	Interval   uint
 	DataPoints dataPointSet
 	SumPrice   sumSet
@@ -38,15 +39,29 @@ func NewVWAPPeriod(interval uint) (VWAPPeriod, error) {
 	}, nil
 }
 
+func (v *vwapPeriod) GetVWAP() sumSet {
+	return v.VWAP
+}
+
 func (v *vwapPeriod) Calculate(d dataPoint) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
 	// collecting datapoints by pair
 	v.DataPoints[d.Pair] = append(v.DataPoints[d.Pair], d)
 
-	if len(v.DataPoints[d.Pair]) == int(v.Interval) {
-		fmt.Printf("Data point set for pair %s, current size: %d \n", d.Pair, len(v.DataPoints[d.Pair]))
-	}
-}
+	// if the number of data points exceeds the interval, the first data point is removed
+	if len(v.DataPoints[d.Pair]) > int(v.Interval) {
+		d := v.DataPoints[d.Pair][0]
+		v.DataPoints[d.Pair] = v.DataPoints[d.Pair][1:]
 
-func (v vwapPeriod) GetVWAP() map[string]float64 {
-	return v.VWAP
+		v.SumPrice[d.Pair] = v.SumPrice[d.Pair] - d.Price
+		v.SumVolume[d.Pair] = v.SumVolume[d.Pair] - d.Volume
+	}
+
+	if len(v.DataPoints[d.Pair]) == int(v.Interval) {
+		v.SumPrice[d.Pair] = d.Price
+		v.SumVolume[d.Pair] = d.Volume
+		v.VWAP[d.Pair] = (d.Price * d.Volume) / d.Volume
+	}
 }

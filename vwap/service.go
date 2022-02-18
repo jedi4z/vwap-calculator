@@ -2,6 +2,7 @@ package vwap
 
 import (
 	"context"
+	"log"
 	"strconv"
 	"vwap-calculator/coinbase"
 
@@ -53,6 +54,8 @@ func (s *service) Run(ctx context.Context) error {
 		return xerrors.Errorf("service subscription err: %w", err)
 	}
 
+	log.Printf("collecting datapoints the VWAP values will be displayed soon")
+
 	for data := range receiver {
 		if data.ProductID == "" || data.Price == "" {
 			continue
@@ -65,7 +68,9 @@ func (s *service) Run(ctx context.Context) error {
 
 		s.vwapPeriod.Calculate(datapoint)
 
-		// fmt.Println(s.vwapPeriod.GetVWAP())
+		if vwap := s.vwapPeriod.GetVWAP(); len(vwap) != 0 {
+			log.Println(vwap)
+		}
 	}
 
 	return nil
