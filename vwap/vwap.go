@@ -8,4 +8,5 @@ type Service interface {
 
 type VWAPPeriod interface {
 	Calculate(dataPoint)
+	GetVWAP() map[string]float64
 }
