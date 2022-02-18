@@ -1,8 +1,14 @@
 package vwap
 
 import (
+	"fmt"
+
 	"golang.org/x/xerrors"
 )
+
+type dataPointSet map[string][]dataPoint
+
+type sumSet map[string]float64
 
 type dataPoint struct {
 	Pair   string
@@ -12,10 +18,10 @@ type dataPoint struct {
 
 type vwapPeriod struct {
 	Interval   uint
-	DataPoints []dataPoint
-	SumPrice   map[string]float64
-	SumVolume  map[string]float64
-	VWAP       map[string]float64
+	DataPoints dataPointSet
+	SumPrice   sumSet
+	SumVolume  sumSet
+	VWAP       sumSet
 }
 
 func NewVWAPPeriod(interval uint) (VWAPPeriod, error) {
@@ -25,15 +31,20 @@ func NewVWAPPeriod(interval uint) (VWAPPeriod, error) {
 
 	return &vwapPeriod{
 		Interval:   interval,
-		DataPoints: []dataPoint{},
-		SumPrice:   make(map[string]float64),
-		SumVolume:  make(map[string]float64),
-		VWAP:       make(map[string]float64),
+		DataPoints: make(dataPointSet),
+		SumPrice:   make(sumSet),
+		SumVolume:  make(sumSet),
+		VWAP:       make(sumSet),
 	}, nil
 }
 
 func (v *vwapPeriod) Calculate(d dataPoint) {
-	v.VWAP["test"] += 1
+	// collecting datapoints by pair
+	v.DataPoints[d.Pair] = append(v.DataPoints[d.Pair], d)
+
+	if len(v.DataPoints[d.Pair]) == int(v.Interval) {
+		fmt.Printf("Data point set for pair %s, current size: %d \n", d.Pair, len(v.DataPoints[d.Pair]))
+	}
 }
 
 func (v vwapPeriod) GetVWAP() map[string]float64 {

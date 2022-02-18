@@ -2,7 +2,6 @@ package vwap
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"vwap-calculator/coinbase"
 
@@ -66,7 +65,7 @@ func (s *service) Run(ctx context.Context) error {
 
 		s.vwapPeriod.Calculate(datapoint)
 
-		fmt.Println(s.vwapPeriod.GetVWAP())
+		// fmt.Println(s.vwapPeriod.GetVWAP())
 	}
 
 	return nil
