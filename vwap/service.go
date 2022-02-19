@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"strings"
 	"vwap-calculator/coinbase"
 
 	"golang.org/x/xerrors"
@@ -55,6 +56,9 @@ func (s *service) Run(ctx context.Context) error {
 	if err != nil {
 		return xerrors.Errorf("service subscription err: %w", err)
 	}
+
+	pairsString := strings.Join(s.pairs, ",")
+	log.Printf("collecting datapoints for pairs: %s | interval: %d", pairsString, s.interval)
 
 	for data := range receiver {
 		if data.ProductID == "" || data.Price == "" {
