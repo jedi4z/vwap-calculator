@@ -17,6 +17,5 @@ type Service interface {
 }
 
 type VWAPPeriod interface {
-	Calculate(DataPoint)
-	GetVWAP() SumSet
+	Calculate(DataPoint) SumSet
 }

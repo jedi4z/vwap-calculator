@@ -7,12 +7,13 @@ import (
 )
 
 type vwapPeriod struct {
-	mu         sync.Mutex
-	interval   int
-	dataPoints DataPointSet
-	sumPrice   SumSet
-	sumVolume  SumSet
-	vwap       SumSet
+	mu                sync.Mutex
+	interval          int
+	dataPoints        DataPointSet
+	sumPrice          SumSet
+	sumVolume         SumSet
+	sumVolumeWeighted SumSet
+	vwap              SumSet
 }
 
 func NewVWAPPeriod(interval int) (VWAPPeriod, error) {
@@ -21,19 +22,16 @@ func NewVWAPPeriod(interval int) (VWAPPeriod, error) {
 	}
 
 	return &vwapPeriod{
-		interval:   interval,
-		dataPoints: make(DataPointSet),
-		sumPrice:   make(SumSet),
-		sumVolume:  make(SumSet),
-		vwap:       make(SumSet),
+		interval:          interval,
+		dataPoints:        make(DataPointSet),
+		sumPrice:          make(SumSet),
+		sumVolume:         make(SumSet),
+		sumVolumeWeighted: make(SumSet),
+		vwap:              make(SumSet),
 	}, nil
 }
 
-func (v *vwapPeriod) GetVWAP() SumSet {
-	return v.vwap
-}
-
-func (v *vwapPeriod) Calculate(d DataPoint) {
+func (v *vwapPeriod) Calculate(d DataPoint) SumSet {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
@@ -45,13 +43,16 @@ func (v *vwapPeriod) Calculate(d DataPoint) {
 		d := v.dataPoints[d.Pair][0]
 		v.dataPoints[d.Pair] = v.dataPoints[d.Pair][1:]
 
-		v.sumPrice[d.Pair] = v.sumPrice[d.Pair] - d.Price
-		v.sumVolume[d.Pair] = v.sumVolume[d.Pair] - d.Volume
+		v.sumPrice[d.Pair] -= d.Price
+		v.sumVolume[d.Pair] -= d.Volume
+		v.sumVolumeWeighted[d.Pair] -= d.Price * d.Volume
 	}
 
-	if len(v.dataPoints[d.Pair]) == int(v.interval) {
-		v.sumPrice[d.Pair] += d.Price
-		v.sumVolume[d.Pair] += d.Volume
-		v.vwap[d.Pair] = (v.sumPrice[d.Pair] * v.sumVolume[d.Pair]) / v.sumVolume[d.Pair]
-	}
+	v.sumPrice[d.Pair] += d.Price
+	v.sumVolume[d.Pair] += d.Volume
+	v.sumVolumeWeighted[d.Pair] += d.Price * d.Volume
+
+	v.vwap[d.Pair] = v.sumVolumeWeighted[d.Pair] / v.sumVolume[d.Pair]
+
+	return v.vwap
 }

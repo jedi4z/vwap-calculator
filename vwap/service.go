@@ -56,8 +56,6 @@ func (s *service) Run(ctx context.Context) error {
 		return xerrors.Errorf("service subscription err: %w", err)
 	}
 
-	log.Printf("collecting data points (%d per pair), the VWAP values will be displayed soon", s.interval)
-
 	for data := range receiver {
 		if data.ProductID == "" || data.Price == "" {
 			continue
@@ -70,9 +68,9 @@ func (s *service) Run(ctx context.Context) error {
 
 		s.vwapPeriod.Calculate(datapoint)
 
-		if vwap := s.vwapPeriod.GetVWAP(); len(vwap) != 0 {
-			log.Println(vwap)
-		}
+		vwap := s.vwapPeriod.Calculate(datapoint)
+
+		log.Println(vwap)
 	}
 
 	return nil
