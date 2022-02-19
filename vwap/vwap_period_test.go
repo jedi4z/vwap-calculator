@@ -14,3 +14,74 @@ func TestNewVWAPPeriod(t *testing.T) {
 
 	require.NoError(t, err)
 }
+
+func TestCalculate(t *testing.T) {
+	tests := []struct {
+		Interval     int
+		Pair         string
+		VWAPExpected float64
+		DataPoints   []vwap.DataPoint
+	}{
+		{
+			Interval:     3,
+			Pair:         "BTC-USD",
+			VWAPExpected: 40177.71,
+			DataPoints: []vwap.DataPoint{
+				{
+					Pair:   "BTC-USD",
+					Price:  40178.14,
+					Volume: 0.00000349,
+				},
+				{
+					Pair:   "BTC-USD",
+					Price:  40177.72,
+					Volume: 0.00069775,
+				},
+				{
+					Pair:   "BTC-USD",
+					Price:  40177.71,
+					Volume: 0.000344,
+				},
+			},
+		},
+		// {
+		// 	Interval:     3,
+		// 	Pair:         "BTC-USD",
+		// 	VWAPExpected: 40177.62,
+		// 	DataPoints: []vwap.DataPoint{
+		// 		{
+		// 			Pair:   "BTC-USD",
+		// 			Price:  40178.14,
+		// 			Volume: 0.00000349,
+		// 		},
+		// 		{
+		// 			Pair:   "BTC-USD",
+		// 			Price:  40177.72,
+		// 			Volume: 0.00069775,
+		// 		},
+		// 		{
+		// 			Pair:   "BTC-USD",
+		// 			Price:  40177.71,
+		// 			Volume: 0.000344,
+		// 		},
+		// 		{
+		// 			Pair:   "BTC-USD",
+		// 			Price:  40177.35,
+		// 			Volume: 0.00033517,
+		// 		},
+		// 	},
+		// },
+	}
+
+	for _, tc := range tests {
+		vwapPeriod, err := vwap.NewVWAPPeriod(tc.Interval)
+		require.NoError(t, err)
+
+		for _, d := range tc.DataPoints {
+			vwapPeriod.Calculate(d)
+
+		}
+
+		require.Equal(t, tc.VWAPExpected, vwapPeriod.GetVWAP()[tc.Pair])
+	}
+}

@@ -6,23 +6,13 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type dataPointSet map[string][]dataPoint
-
-type sumSet map[string]float64
-
-type dataPoint struct {
-	pair   string
-	price  float64
-	volume float64
-}
-
 type vwapPeriod struct {
 	mu         sync.Mutex
 	interval   int
-	dataPoints dataPointSet
-	sumPrice   sumSet
-	sumVolume  sumSet
-	vwap       sumSet
+	dataPoints DataPointSet
+	sumPrice   SumSet
+	sumVolume  SumSet
+	vwap       SumSet
 }
 
 func NewVWAPPeriod(interval int) (VWAPPeriod, error) {
@@ -32,36 +22,36 @@ func NewVWAPPeriod(interval int) (VWAPPeriod, error) {
 
 	return &vwapPeriod{
 		interval:   interval,
-		dataPoints: make(dataPointSet),
-		sumPrice:   make(sumSet),
-		sumVolume:  make(sumSet),
-		vwap:       make(sumSet),
+		dataPoints: make(DataPointSet),
+		sumPrice:   make(SumSet),
+		sumVolume:  make(SumSet),
+		vwap:       make(SumSet),
 	}, nil
 }
 
-func (v *vwapPeriod) GetVWAP() sumSet {
+func (v *vwapPeriod) GetVWAP() SumSet {
 	return v.vwap
 }
 
-func (v *vwapPeriod) Calculate(d dataPoint) {
+func (v *vwapPeriod) Calculate(d DataPoint) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
 	// collecting datapoints by pair
-	v.dataPoints[d.pair] = append(v.dataPoints[d.pair], d)
+	v.dataPoints[d.Pair] = append(v.dataPoints[d.Pair], d)
 
 	// if the number of data points exceeds the interval, the first data point is removed
-	if len(v.dataPoints[d.pair]) > int(v.interval) {
-		d := v.dataPoints[d.pair][0]
-		v.dataPoints[d.pair] = v.dataPoints[d.pair][1:]
+	if len(v.dataPoints[d.Pair]) > int(v.interval) {
+		d := v.dataPoints[d.Pair][0]
+		v.dataPoints[d.Pair] = v.dataPoints[d.Pair][1:]
 
-		v.sumPrice[d.pair] = v.sumPrice[d.pair] - d.price
-		v.sumVolume[d.pair] = v.sumVolume[d.pair] - d.volume
+		v.sumPrice[d.Pair] = v.sumPrice[d.Pair] - d.Price
+		v.sumVolume[d.Pair] = v.sumVolume[d.Pair] - d.Volume
 	}
 
-	if len(v.dataPoints[d.pair]) == int(v.interval) {
-		v.sumPrice[d.pair] = d.price
-		v.sumVolume[d.pair] = d.volume
-		v.vwap[d.pair] = (d.price * d.volume) / d.volume
+	if len(v.dataPoints[d.Pair]) == int(v.interval) {
+		v.sumPrice[d.Pair] += d.Price
+		v.sumVolume[d.Pair] += d.Volume
+		v.vwap[d.Pair] = (v.sumPrice[d.Pair] * v.sumVolume[d.Pair]) / v.sumVolume[d.Pair]
 	}
 }

@@ -30,21 +30,21 @@ func NewService(cbClient coinbase.CoinbaseClient, pairs []string, interval int) 
 	}, nil
 }
 
-func generateDataPointFromCoinbaseResponse(d coinbase.Response) (dataPoint, error) {
+func generateDataPointFromCoinbaseResponse(d coinbase.Response) (DataPoint, error) {
 	priceFloat, err := strconv.ParseFloat(d.Price, 64)
 	if err != nil {
-		return dataPoint{}, xerrors.Errorf("error converting str price to float %s: %w", d.Price, err)
+		return DataPoint{}, xerrors.Errorf("error converting str price to float %s: %w", d.Price, err)
 	}
 
 	volumeFloat, err := strconv.ParseFloat(d.Size, 64)
 	if err != nil {
-		return dataPoint{}, xerrors.Errorf("error converting str volume to float %s: %w", d.Price, err)
+		return DataPoint{}, xerrors.Errorf("error converting str volume to float %s: %w", d.Price, err)
 	}
 
-	return dataPoint{
-		pair:   d.ProductID,
-		price:  priceFloat,
-		volume: volumeFloat,
+	return DataPoint{
+		Pair:   d.ProductID,
+		Price:  priceFloat,
+		Volume: volumeFloat,
 	}, nil
 }
 
