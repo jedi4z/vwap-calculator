@@ -11,36 +11,36 @@ type dataPointSet map[string][]dataPoint
 type sumSet map[string]float64
 
 type dataPoint struct {
-	Pair   string
-	Price  float64
-	Volume float64
+	pair   string
+	price  float64
+	volume float64
 }
 
 type vwapPeriod struct {
 	mu         sync.Mutex
-	Interval   uint
-	DataPoints dataPointSet
-	SumPrice   sumSet
-	SumVolume  sumSet
-	VWAP       sumSet
+	interval   int
+	dataPoints dataPointSet
+	sumPrice   sumSet
+	sumVolume  sumSet
+	vwap       sumSet
 }
 
-func NewVWAPPeriod(interval uint) (VWAPPeriod, error) {
+func NewVWAPPeriod(interval int) (VWAPPeriod, error) {
 	if interval < 0 {
 		return &vwapPeriod{}, xerrors.New("the interval should be greater than 0")
 	}
 
 	return &vwapPeriod{
-		Interval:   interval,
-		DataPoints: make(dataPointSet),
-		SumPrice:   make(sumSet),
-		SumVolume:  make(sumSet),
-		VWAP:       make(sumSet),
+		interval:   interval,
+		dataPoints: make(dataPointSet),
+		sumPrice:   make(sumSet),
+		sumVolume:  make(sumSet),
+		vwap:       make(sumSet),
 	}, nil
 }
 
 func (v *vwapPeriod) GetVWAP() sumSet {
-	return v.VWAP
+	return v.vwap
 }
 
 func (v *vwapPeriod) Calculate(d dataPoint) {
@@ -48,20 +48,20 @@ func (v *vwapPeriod) Calculate(d dataPoint) {
 	defer v.mu.Unlock()
 
 	// collecting datapoints by pair
-	v.DataPoints[d.Pair] = append(v.DataPoints[d.Pair], d)
+	v.dataPoints[d.pair] = append(v.dataPoints[d.pair], d)
 
 	// if the number of data points exceeds the interval, the first data point is removed
-	if len(v.DataPoints[d.Pair]) > int(v.Interval) {
-		d := v.DataPoints[d.Pair][0]
-		v.DataPoints[d.Pair] = v.DataPoints[d.Pair][1:]
+	if len(v.dataPoints[d.pair]) > int(v.interval) {
+		d := v.dataPoints[d.pair][0]
+		v.dataPoints[d.pair] = v.dataPoints[d.pair][1:]
 
-		v.SumPrice[d.Pair] = v.SumPrice[d.Pair] - d.Price
-		v.SumVolume[d.Pair] = v.SumVolume[d.Pair] - d.Volume
+		v.sumPrice[d.pair] = v.sumPrice[d.pair] - d.price
+		v.sumVolume[d.pair] = v.sumVolume[d.pair] - d.volume
 	}
 
-	if len(v.DataPoints[d.Pair]) == int(v.Interval) {
-		v.SumPrice[d.Pair] = d.Price
-		v.SumVolume[d.Pair] = d.Volume
-		v.VWAP[d.Pair] = (d.Price * d.Volume) / d.Volume
+	if len(v.dataPoints[d.pair]) == int(v.interval) {
+		v.sumPrice[d.pair] = d.price
+		v.sumVolume[d.pair] = d.volume
+		v.vwap[d.pair] = (d.price * d.volume) / d.volume
 	}
 }

@@ -13,10 +13,11 @@ type service struct {
 	cbClient   coinbase.CoinbaseClient
 	pairs      []string
 	vwapPeriod VWAPPeriod
+	interval   int
 }
 
-func NewService(cbClient coinbase.CoinbaseClient, pairs []string) (Service, error) {
-	vwapPeriod, err := NewVWAPPeriod(200)
+func NewService(cbClient coinbase.CoinbaseClient, pairs []string, interval int) (Service, error) {
+	vwapPeriod, err := NewVWAPPeriod(interval)
 	if err != nil {
 		return &service{}, xerrors.Errorf("error creating the VWAP period: %w", err)
 	}
@@ -25,6 +26,7 @@ func NewService(cbClient coinbase.CoinbaseClient, pairs []string) (Service, erro
 		cbClient:   cbClient,
 		pairs:      pairs,
 		vwapPeriod: vwapPeriod,
+		interval:   interval,
 	}, nil
 }
 
@@ -40,9 +42,9 @@ func generateDataPointFromCoinbaseResponse(d coinbase.Response) (dataPoint, erro
 	}
 
 	return dataPoint{
-		Pair:   d.ProductID,
-		Price:  priceFloat,
-		Volume: volumeFloat,
+		pair:   d.ProductID,
+		price:  priceFloat,
+		volume: volumeFloat,
 	}, nil
 }
 
@@ -54,7 +56,7 @@ func (s *service) Run(ctx context.Context) error {
 		return xerrors.Errorf("service subscription err: %w", err)
 	}
 
-	log.Printf("collecting datapoints the VWAP values will be displayed soon")
+	log.Printf("collecting data points (%d per pair), the VWAP values will be displayed soon", s.interval)
 
 	for data := range receiver {
 		if data.ProductID == "" || data.Price == "" {

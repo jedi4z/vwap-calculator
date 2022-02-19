@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net/url"
 	"strings"
@@ -9,9 +10,20 @@ import (
 	"vwap-calculator/vwap"
 )
 
+const (
+	defaultInterval = 200
+	defaultPairs    = "BTC-USD,ETH-USD,ETH-BTC"
+)
+
 func main() {
 	ctx := context.Background()
-	pairsArr := strings.Split("BTC-USD,ETH-USD,ETH-BTC", ",")
+
+	pairs := flag.String("pairs", defaultPairs, "trading pairs to subscribe to")
+	interval := flag.Int("interval", defaultInterval, "window size")
+
+	flag.Parse()
+
+	pairsArr := strings.Split(*pairs, ",")
 
 	e := url.URL{Scheme: "wss", Host: "ws-feed.exchange.coinbase.com", Path: "/"}
 
@@ -20,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	vwapService, err := vwap.NewService(cbClient, pairsArr)
+	vwapService, err := vwap.NewService(cbClient, pairsArr, *interval)
 	if err != nil {
 		log.Fatal(err)
 	}
