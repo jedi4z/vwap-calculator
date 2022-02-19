@@ -18,7 +18,7 @@ func TestNewService(t *testing.T) {
 
 	cbClient, _ := coinbase.NewClient(e.String())
 
-	_, err := vwap.NewService(cbClient, pairsArr)
+	_, err := vwap.NewService(cbClient, pairsArr, 200)
 
 	require.NoError(t, err)
 }
